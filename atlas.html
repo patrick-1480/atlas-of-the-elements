@@ -1,0 +1,565 @@
+<title>Atlas of the Elements</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: tools above one wide periodic grid, a trend strip under it, and an overlay lab that zooms out of the clicked tile */
+:root{--bg:#f3f4f8;--pn:#fff;--tx:#141821;--mu:#5f6a82;--ln:#d8dce6;--ac:#2a78d6;--er:#c9372c;--heat:212;--gl:max(16px,env(safe-area-inset-left,0px));--gr:max(16px,env(safe-area-inset-right,0px))}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0a0d14;--pn:#121722;--tx:#e8ecf5;--mu:#8b95ab;--ln:#242c3d;--ac:#5598e7;--er:#ff7b6e;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0a0d14;--pn:#121722;--tx:#e8ecf5;--mu:#8b95ab;--ln:#242c3d;--ac:#5598e7;--er:#ff7b6e;color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--tx);font:14px/1.45 'Space Grotesk',system-ui,sans-serif}
+.gut{padding-left:var(--gl);padding-right:var(--gr)}
+header{padding-block:18px 6px;display:flex;flex-wrap:wrap;gap:12px;align-items:end;justify-content:space-between}
+h1{margin:0;font-size:clamp(22px,3vw,32px);letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+h1 span{display:block;color:var(--mu);font-weight:400;font-size:14px;letter-spacing:0;margin-top:4px;max-width:62ch}
+.tx{background:var(--pn);border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:8px 12px;font:inherit;width:230px;max-width:100%}
+.bt:focus-visible,.tx:focus-visible,.lc:focus-visible,.el:focus-visible,input[type=range]:focus-visible{outline:2px solid var(--tx);outline-offset:2px}
+#tools{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#fxo{padding-block:4px 2px;display:grid;gap:6px;max-width:760px}
+#fxo .er{color:var(--er)}
+.comp{display:flex;gap:2px;height:10px;border-radius:5px;overflow:hidden;max-width:520px}
+.comp i{background:hsl(var(--h) 60% 50%);min-width:3px}
+.cl{display:flex;flex-wrap:wrap;gap:4px 14px;color:var(--mu);font-size:13px}
+.cl span{display:inline-flex;align-items:center;gap:6px;color:var(--tx)}
+.cl span i{width:10px;height:10px;border-radius:3px;background:hsl(var(--h) 60% 50%)}
+.cl em{font-style:normal;color:var(--mu)}
+#qbar{padding-block:6px;align-items:center;color:var(--mu)}
+#qsc{font-variant-numeric:tabular-nums;margin-left:6px}
+#md{padding-block:4px;align-items:center;color:var(--mu)}
+#md .gap{margin-left:10px}
+#sl{padding-block:6px 0;align-items:center;color:var(--mu);gap:10px}
+#sl input{width:min(420px,70vw);accent-color:var(--ac)}
+#sn{color:var(--tx);font-variant-numeric:tabular-nums}
+#lg{display:flex;flex-wrap:wrap;gap:6px;padding-block:8px;align-items:center}
+.lc{font:inherit;font-size:12px;padding:3px 10px;border-radius:99px;border:1px solid hsl(var(--h) 55% 50%/.6);background:hsl(var(--h) 60% 50%/.15);color:var(--tx);cursor:pointer}.lc:hover,.lc.selected{border-color:hsl(var(--h) 75% 45%);background:hsl(var(--h) 65% 50%/.32)}.lc.selected{box-shadow:inset 0 0 0 1px hsl(var(--h) 75% 45%)}
+.grad{display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px;color:var(--mu);font-variant-numeric:tabular-nums}
+.grad i{width:180px;height:10px;border-radius:5px;border:1px solid var(--ln);background:linear-gradient(90deg,hsl(var(--heat) 75% 50%/.07),hsl(var(--heat) 75% 50%/.77))}
+.grad b{font-weight:500;color:var(--tx)}
+.grad .nd{border:1px dashed var(--ln);border-radius:99px;padding:2px 9px}
+#wrap{overflow-x:auto;padding-block:8px 18px}
+#pt{display:grid;grid-template-columns:repeat(18,minmax(40px,1fr));grid-template-rows:repeat(7,auto) 14px auto auto;gap:4px;min-width:780px;max-width:1500px;margin:auto}
+.el,.ph{grid-row:var(--r);grid-column:var(--c);border-radius:6px}
+.el{aspect-ratio:1/1.1;border:1px solid hsl(var(--h) var(--s,55%) 50%/.55);background:hsl(var(--h) var(--s,60%) 50%/var(--a,.16));color:var(--tx);cursor:pointer;display:flex;flex-direction:column;justify-content:space-between;padding:3px 4px;font:inherit;text-align:left;transition:transform .15s,background .15s,opacity .2s;min-width:0}
+.el:hover,.el:focus-visible{transform:scale(1.2);z-index:3;background:hsl(var(--h) 70% 50%/.4);outline:none}
+.el small{font-size:clamp(7px,.75vw,10px);color:var(--mu);line-height:1.1;white-space:nowrap;overflow:hidden;text-overflow:clip}
+.heat .el small.nm{color:var(--tx);font-variant-numeric:tabular-nums}
+.el b{font-size:clamp(12px,1.8vw,24px);line-height:1;font-weight:700}
+.el.dim{opacity:.15}
+.el.und{opacity:.06;border-style:dashed}
+.el.hl{outline:2px solid var(--tx);outline-offset:1px;z-index:2}
+.el.hint{animation:hint 1.5s}
+@keyframes hint{0%,100%{box-shadow:none}25%,75%{box-shadow:0 0 0 3px var(--ac)}}
+.qz .el b,.qz .el small{visibility:hidden}
+.qz .el.ok{background:hsl(140 70% 45%/.7)}.qz .el.no{background:hsl(0 80% 55%/.7)}
+.ph{border:1px dashed hsl(var(--h) 55% 50%/.6);display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--mu)}
+#hv{grid-row:1/4;grid-column:3/13;color:var(--mu);align-self:center;padding-left:8px}
+#hv big{display:block;color:var(--tx);font-size:clamp(18px,2.4vw,28px);font-weight:700}
+@media(max-width:1100px){.nm{display:none}}
+#trw{padding-block:0 32px}
+#trw>div{max-width:1500px;margin:auto}
+.trh{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline;margin-bottom:4px}
+.trh b{font-weight:500}.trh span{color:var(--mu);font-size:13px}
+#tr{width:100%;height:210px;display:block;cursor:crosshair;touch-action:pan-y}
+#ov{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:max(10px,env(safe-area-inset-top,0px)) max(10px,env(safe-area-inset-right,0px)) max(10px,env(safe-area-inset-bottom,0px)) max(10px,env(safe-area-inset-left,0px));background:rgba(4,6,12,.72);backdrop-filter:blur(8px);animation:f .3s}
+#ov[hidden]{display:none}
+@keyframes f{from{opacity:0}}
+#pan{transform-origin:0 0;width:min(1180px,100%);max-height:100%;overflow:auto;background:var(--pn);border:1px solid var(--ln);border-radius:16px;padding:16px}
+#pan>*{transition:opacity .35s .3s}
+#pan.z>*{opacity:0;transition:none}
+#hd{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:12px}
+#big{width:78px;height:86px;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;border:1px solid hsl(var(--h) 60% 55%/.7);background:hsl(var(--h) 60% 50%/.2)}
+#big b{font-size:36px;line-height:1}#big small{align-self:flex-start;margin-left:8px;color:var(--mu)}
+#ttl h2{margin:0;font-size:28px;line-height:1.1}#ttl span{color:var(--mu)}
+.sp{flex:1}
+.row{display:flex;flex-wrap:wrap;gap:6px}
+.bt{background:transparent;border:1px solid var(--ln);color:var(--tx);border-radius:8px;padding:6px 12px;font:inherit;cursor:pointer}
+.bt:hover{border-color:var(--mu)}.bt.on{background:var(--tx);color:var(--pn);border-color:var(--tx)}
+.bt:disabled{opacity:.35;cursor:default}
+.ch{padding:3px 9px;font-size:13px}
+#main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,1fr);gap:14px}
+#s3{position:relative;height:min(62vh,540px);min-height:320px;border-radius:12px;overflow:hidden;background:radial-gradient(circle at 50% 40%,#16203a,#05070d 72%);touch-action:none}
+#s3 canvas{display:block}
+#lab,#hint{position:absolute;left:12px;right:12px;font-size:12px;color:#8b95ab;pointer-events:none}
+#lab{top:10px;right:120px;color:#c5cee0;font-size:13px}#hint{bottom:10px}
+#fs3{position:absolute;top:8px;right:8px;z-index:2;color:#c5cee0;border-color:rgba(197,206,224,.35);background:rgba(5,7,13,.5)}
+#fs3:hover{border-color:#c5cee0}
+#s3:fullscreen{border-radius:0}
+#s3.fsx{position:fixed;inset:0;z-index:50;height:auto;min-height:0;border-radius:0}
+#cap2{color:var(--mu);margin-bottom:6px}
+#c2{width:100%;max-width:100%;aspect-ratio:1;border-radius:12px;background:#05070d;display:block}
+#c2.nav{cursor:pointer}
+#orb{margin-top:10px;display:grid;gap:8px}#orb p{margin:0;color:var(--mu);font-size:12.5px}#orb .st p{margin-top:5px}
+#ctl{margin-top:12px;align-items:center;color:var(--mu)}
+#ctl b{color:var(--tx);min-width:3.2em;text-align:center;font-weight:500}
+#info{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-top:12px}
+.st{background:var(--bg);border:1px solid var(--ln);border-radius:10px;padding:8px 11px;min-width:0}
+.st small{display:block;color:var(--mu);font-size:12px}.st b{font-size:17px;font-weight:500;overflow-wrap:anywhere}
+.st p{margin:4px 0 0;color:var(--mu);font-size:13px;max-width:80ch}
+.st .bt{margin-top:8px}
+.u{color:var(--mu);font-size:12px;margin-left:4px;font-weight:400}
+.w2{grid-column:1/-1}
+.nt{grid-column:1/-1;color:var(--mu);font-size:12px}
+.obx{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;margin-top:6px}
+.obx .core{font-size:15px;color:var(--mu);align-self:center}
+.sb{display:flex;flex-direction:column;align-items:center;gap:3px}
+.sb small{font-size:12px}
+.bxs{display:flex}
+.bxs i{width:22px;height:26px;border:1px solid var(--mu);margin-left:-1px;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:14px;letter-spacing:-2px;line-height:1}
+@media(max-width:820px){#main{grid-template-columns:1fr}#s3{height:min(70vw,460px)}}
+@media(prefers-reduced-motion:reduce){#pan>*{transition:none}.el{transition:none}.el.hint{animation:none;outline:2px solid var(--ac)}}
+</style>
+<header class="gut"><h1>Atlas of the Elements<span>All 118 elements as 3D and 2D atoms, nuclei and orbitals. Recolor the table by any property, watch elements melt or get discovered, build ions and isotopes, follow decay chains, weigh a formula, or quiz yourself.</span></h1>
+<div id="tools"><button class="bt" id="rnd">Random</button><button class="bt" id="qb">Quiz</button><button class="bt" id="tm" aria-label="Switch light or dark theme">◐</button><button class="bt" id="fs">Full screen</button><input class="tx" id="q" type="search" placeholder="Search name, symbol or number" aria-label="Search elements"><input class="tx" id="fx" placeholder="Molar mass, e.g. Ca(OH)2" aria-label="Chemical formula for molar mass" autocomplete="off" spellcheck="false"></div></header>
+<div id="fxo" class="gut" hidden></div>
+<div id="qbar" class="row gut" hidden><span>Find by</span><button class="bt ch" data-qt="name">Name</button><button class="bt ch" data-qt="symbol">Symbol</button><button class="bt ch" data-qt="number">Number</button><button class="bt ch" data-qa="hint">Hint</button><button class="bt ch" data-qa="skip">Skip</button><span id="qsc"></span></div>
+<div class="row gut" id="md"></div>
+<div class="row gut" id="sl" hidden><label for="sv" id="sll"></label><input type="range" id="sv"><button class="bt ch" id="sb"></button><span id="sn"></span></div>
+<div id="lg" class="gut"></div>
+<div id="wrap" class="gut"><div id="pt"><div id="hv"><big>Pick an element</big>Hover for a quick look, click to zoom into its atom. Arrow keys move around the table.</div></div></div>
+<div id="trw" class="gut" hidden><div><div class="trh"><b id="trt"></b><span id="trs"></span></div><canvas id="tr" aria-label="Line chart of the selected property against atomic number"></canvas></div></div>
+<div id="ov" hidden><div id="pan" class="z">
+<div id="hd"><div id="big"></div><div id="ttl"></div><div class="sp"></div>
+<div class="row" id="tb"><button class="bt on" data-t="0">Atom</button><button class="bt" data-t="1">Nucleus</button><button class="bt" data-t="2">Orbitals</button></div>
+<div class="row"><button class="bt" id="pv" aria-label="Previous element">←</button><button class="bt" id="nx" aria-label="Next element">→</button><button class="bt" id="cl" aria-label="Close">✕</button></div></div>
+<div id="main"><div id="s3"><div id="lab"></div><button class="bt ch" id="fs3">Full screen</button><div id="hint">Drag to rotate, scroll to zoom, click an electron, nucleon or cloud to zoom in, double-click to auto-rotate</div></div>
+<div><div id="cap2"></div><canvas id="c2"></canvas><div id="orb" hidden></div></div></div>
+<div class="row" id="ctl"></div>
+<div id="info"></div></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],TAU=Math.PI*2;
+const store={get(k,d){try{const v=localStorage.getItem("atlas-"+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem("atlas-"+k,JSON.stringify(v))}catch(e){}}};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"})[c]);
+const D="H Hydrogen 1.008,He Helium 4.0026,Li Lithium 6.94,Be Beryllium 9.0122,B Boron 10.81,C Carbon 12.011,N Nitrogen 14.007,O Oxygen 15.999,F Fluorine 18.998,Ne Neon 20.180,Na Sodium 22.990,Mg Magnesium 24.305,Al Aluminium 26.982,Si Silicon 28.085,P Phosphorus 30.974,S Sulfur 32.06,Cl Chlorine 35.45,Ar Argon 39.948,K Potassium 39.098,Ca Calcium 40.078,Sc Scandium 44.956,Ti Titanium 47.867,V Vanadium 50.942,Cr Chromium 51.996,Mn Manganese 54.938,Fe Iron 55.845,Co Cobalt 58.933,Ni Nickel 58.693,Cu Copper 63.546,Zn Zinc 65.38,Ga Gallium 69.723,Ge Germanium 72.630,As Arsenic 74.922,Se Selenium 78.971,Br Bromine 79.904,Kr Krypton 83.798,Rb Rubidium 85.468,Sr Strontium 87.62,Y Yttrium 88.906,Zr Zirconium 91.224,Nb Niobium 92.906,Mo Molybdenum 95.95,Tc Technetium 98,Ru Ruthenium 101.07,Rh Rhodium 102.91,Pd Palladium 106.42,Ag Silver 107.87,Cd Cadmium 112.41,In Indium 114.82,Sn Tin 118.71,Sb Antimony 121.76,Te Tellurium 127.60,I Iodine 126.90,Xe Xenon 131.29,Cs Caesium 132.91,Ba Barium 137.33,La Lanthanum 138.91,Ce Cerium 140.12,Pr Praseodymium 140.91,Nd Neodymium 144.24,Pm Promethium 145,Sm Samarium 150.36,Eu Europium 151.96,Gd Gadolinium 157.25,Tb Terbium 158.93,Dy Dysprosium 162.50,Ho Holmium 164.93,Er Erbium 167.26,Tm Thulium 168.93,Yb Ytterbium 173.05,Lu Lutetium 174.97,Hf Hafnium 178.49,Ta Tantalum 180.95,W Tungsten 183.84,Re Rhenium 186.21,Os Osmium 190.23,Ir Iridium 192.22,Pt Platinum 195.08,Au Gold 196.97,Hg Mercury 200.59,Tl Thallium 204.38,Pb Lead 207.2,Bi Bismuth 208.98,Po Polonium 209,At Astatine 210,Rn Radon 222,Fr Francium 223,Ra Radium 226,Ac Actinium 227,Th Thorium 232.04,Pa Protactinium 231.04,U Uranium 238.03,Np Neptunium 237,Pu Plutonium 244,Am Americium 243,Cm Curium 247,Bk Berkelium 247,Cf Californium 251,Es Einsteinium 252,Fm Fermium 257,Md Mendelevium 258,No Nobelium 259,Lr Lawrencium 266,Rf Rutherfordium 267,Db Dubnium 268,Sg Seaborgium 269,Bh Bohrium 270,Hs Hassium 277,Mt Meitnerium 278,Ds Darmstadtium 281,Rg Roentgenium 282,Cn Copernicium 285,Nh Nihonium 286,Fl Flerovium 289,Mc Moscovium 290,Lv Livermorium 293,Ts Tennessine 294,Og Oganesson 294".split(",").map((s,i)=>{const[a,b,c]=s.split(" ");return{z:i+1,s:a,n:b,m:+c}});
+const SYM={};D.forEach(e=>SYM[e.s]=e);
+/* per element: Pauling electronegativity, melting point K, boiling point K, density g/cm³, first ionization energy eV, year discovered (0 = ancient); "-" = no reliable value */
+`H 2.20 13.99 20.28 .00008988 13.598 1766
+He - - 4.22 .0001785 24.587 1868
+Li .98 453.65 1615 .534 5.392 1817
+Be 1.57 1560 2742 1.85 9.323 1798
+B 2.04 2349 4200 2.34 8.298 1808
+C 2.55 - - 2.267 11.260 0
+N 3.04 63.15 77.36 .0012506 14.534 1772
+O 3.44 54.36 90.20 .001429 13.618 1771
+F 3.98 53.48 85.03 .001696 17.423 1886
+Ne - 24.56 27.07 .0009002 21.565 1898
+Na .93 370.94 1156 .968 5.139 1807
+Mg 1.31 923 1363 1.738 7.646 1755
+Al 1.61 933.47 2792 2.70 5.986 1825
+Si 1.90 1687 3538 2.329 8.152 1824
+P 2.19 317.3 553.6 1.823 10.487 1669
+S 2.58 388.36 717.8 2.07 10.360 0
+Cl 3.16 171.6 239.11 .003214 12.968 1774
+Ar - 83.81 87.30 .001784 15.760 1894
+K .82 336.7 1032 .89 4.341 1807
+Ca 1.00 1115 1757 1.55 6.113 1808
+Sc 1.36 1814 3109 2.985 6.561 1879
+Ti 1.54 1941 3560 4.506 6.828 1791
+V 1.63 2183 3680 6.0 6.746 1801
+Cr 1.66 2180 2944 7.19 6.767 1797
+Mn 1.55 1519 2334 7.21 7.434 1774
+Fe 1.83 1811 3134 7.874 7.902 0
+Co 1.88 1768 3200 8.90 7.881 1735
+Ni 1.91 1728 3186 8.908 7.640 1751
+Cu 1.90 1357.77 2835 8.96 7.726 0
+Zn 1.65 692.68 1180 7.14 9.394 1746
+Ga 1.81 302.91 2673 5.91 5.999 1875
+Ge 2.01 1211.4 3106 5.323 7.899 1886
+As 2.18 1090 - 5.727 9.789 1250
+Se 2.55 494 958 4.81 9.752 1817
+Br 2.96 265.8 332 3.1028 11.814 1825
+Kr 3.00 115.79 119.93 .003749 14.000 1898
+Rb .82 312.46 961 1.532 4.177 1861
+Sr .95 1050 1655 2.64 5.695 1790
+Y 1.22 1799 3609 4.472 6.217 1794
+Zr 1.33 2128 4682 6.52 6.634 1789
+Nb 1.6 2750 5017 8.57 6.759 1801
+Mo 2.16 2896 4912 10.28 7.092 1778
+Tc 1.9 2430 4538 11 7.28 1937
+Ru 2.2 2607 4423 12.45 7.361 1844
+Rh 2.28 2237 3968 12.41 7.459 1804
+Pd 2.20 1828.05 3236 12.023 8.337 1802
+Ag 1.93 1234.93 2435 10.49 7.576 0
+Cd 1.69 594.22 1040 8.65 8.994 1817
+In 1.78 429.75 2345 7.31 5.786 1863
+Sn 1.96 505.08 2875 7.265 7.344 0
+Sb 2.05 903.78 1860 6.697 8.608 0
+Te 2.1 722.66 1261 6.24 9.010 1782
+I 2.66 386.85 457.4 4.933 10.451 1811
+Xe 2.6 161.4 165.03 .005894 12.130 1898
+Cs .79 301.59 944 1.93 3.894 1860
+Ba .89 1000 2170 3.51 5.212 1772
+La 1.10 1193 3737 6.162 5.577 1839
+Ce 1.12 1068 3716 6.77 5.539 1803
+Pr 1.13 1208 3793 6.77 5.473 1885
+Nd 1.14 1297 3347 7.01 5.525 1885
+Pm 1.13 1315 3273 7.26 5.582 1945
+Sm 1.17 1345 2067 7.52 5.644 1879
+Eu 1.2 1099 1802 5.264 5.670 1896
+Gd 1.2 1585 3546 7.90 6.150 1880
+Tb 1.1 1629 3503 8.23 5.864 1843
+Dy 1.22 1680 2840 8.540 5.939 1886
+Ho 1.23 1734 2993 8.79 6.022 1878
+Er 1.24 1802 3141 9.066 6.108 1843
+Tm 1.25 1818 2223 9.32 6.184 1879
+Yb 1.1 1097 1469 6.90 6.254 1878
+Lu 1.27 1925 3675 9.841 5.426 1907
+Hf 1.3 2506 4876 13.31 6.825 1923
+Ta 1.5 3290 5731 16.69 7.550 1802
+W 2.36 3695 5828 19.25 7.864 1781
+Re 1.9 3459 5869 21.02 7.834 1925
+Os 2.2 3306 5285 22.59 8.438 1803
+Ir 2.20 2719 4701 22.56 8.967 1803
+Pt 2.28 2041.4 4098 21.45 8.959 1735
+Au 2.54 1337.33 3129 19.3 9.226 0
+Hg 2.00 234.32 629.88 13.534 10.438 0
+Tl 1.62 577 1746 11.85 6.108 1861
+Pb 2.33 600.61 2022 11.34 7.417 0
+Bi 2.02 544.4 1837 9.78 7.286 1500
+Po 2.0 527 1235 9.196 8.414 1898
+At 2.2 575 610 - 9.318 1940
+Rn 2.2 202 211.3 .00973 10.749 1899
+Fr .79 300 950 - 4.073 1939
+Ra .9 973 2010 5.5 5.278 1898
+Ac 1.1 1323 3471 10 5.17 1899
+Th 1.3 2023 5061 11.7 6.307 1829
+Pa 1.5 1841 4300 15.37 5.89 1913
+U 1.38 1405.3 4404 19.1 6.194 1789
+Np 1.36 912 4273 20.45 6.266 1940
+Pu 1.28 912.5 3501 19.816 6.026 1940
+Am 1.13 1449 2880 12 5.974 1944
+Cm 1.28 1613 3383 13.51 5.991 1944
+Bk 1.3 1259 2900 14.78 6.198 1949
+Cf 1.3 1173 1743 15.1 6.282 1950
+Es 1.3 1133 1269 8.84 6.368 1952
+Fm 1.3 - - - 6.50 1952
+Md 1.3 - - - 6.58 1955
+No 1.3 - - - 6.66 1966
+Lr - - - - 4.96 1961
+Rf - - - - - 1964
+Db - - - - - 1968
+Sg - - - - - 1974
+Bh - - - - - 1981
+Hs - - - - - 1984
+Mt - - - - - 1982
+Ds - - - - - 1994
+Rg - - - - - 1994
+Cn - - - - - 1996
+Nh - - - - - 2004
+Fl - - - - - 1999
+Mc - - - - - 2003
+Lv - - - - - 2000
+Ts - - - - - 2010
+Og - - - - - 2002`.split("\n").forEach((l,i)=>{const[s,...v]=l.trim().split(/\s+/),e=D[i];if(e.s!=s)console.warn("property row out of step",i,s);[e.en,e.mp,e.bp,e.rho,e.ie,e.yr]=v.map(x=>x=="-"?null:+x)});
+/* carbon and arsenic sublime at 1 atm */
+const SUBL={6:3915,33:887};D.forEach(e=>{e.sub=SUBL[e.z]||null;e.mpv=e.mp??e.sub;e.bpv=e.bp??e.sub});
+/* stable nuclides, plus those with half-lives over 10^15 years (mass numbers by Z) */
+const STB={};"1:1 2;2:3 4;3:6 7;4:9;5:10 11;6:12 13;7:14 15;8:16 17 18;9:19;10:20 21 22;11:23;12:24 25 26;13:27;14:28 29 30;15:31;16:32 33 34 36;17:35 37;18:36 38 40;19:39 41;20:40 42 43 44 46 48;21:45;22:46 47 48 49 50;23:50 51;24:50 52 53 54;25:55;26:54 56 57 58;27:59;28:58 60 61 62 64;29:63 65;30:64 66 67 68 70;31:69 71;32:70 72 73 74 76;33:75;34:74 76 77 78 80 82;35:79 81;36:78 80 82 83 84 86;37:85;38:84 86 87 88;39:89;40:90 91 92 94 96;41:93;42:92 94 95 96 97 98 100;44:96 98 99 100 101 102 104;45:103;46:102 104 105 106 108 110;47:107 109;48:106 108 110 111 112 113 114 116;49:113;50:112 114 115 116 117 118 119 120 122 124;51:121 123;52:120 122 123 124 125 126 128 130;53:127;54:124 126 128 129 130 131 132 134 136;55:133;56:130 132 134 135 136 137 138;57:139;58:136 138 140 142;59:141;60:142 143 144 145 146 148 150;62:144 148 149 150 152 154;63:151 153;64:154 155 156 157 158 160;65:159;66:156 158 160 161 162 163 164;67:165;68:162 164 166 167 168 170;69:169;70:168 170 171 172 173 174 176;71:175;72:174 176 177 178 179 180;73:181;74:180 182 183 184 186;75:185;76:184 186 187 188 189 190 192;77:191 193;78:192 194 195 196 198;79:197;80:196 198 199 200 201 202 204;81:203 205;82:204 206 207 208;83:209".split(";").forEach(t=>{const[z,a]=t.split(":");STB[z]=a.split(" ").map(Number)});
+const has=(z,s)=>s.split(" ").includes(""+z);
+const CT={alkali:["Alkali metal",0],alk:["Alkaline earth metal",30],tr:["Transition metal",215],post:["Post-transition metal",180],meta:["Metalloid",150],non:["Reactive nonmetal",105],hal:["Halogen",55],noble:["Noble gas",280],lan:["Lanthanide",320],act:["Actinide",255]};
+const cat=z=>has(z,"2 10 18 36 54 86 118")?"noble":has(z,"3 11 19 37 55 87")?"alkali":has(z,"4 12 20 38 56 88")?"alk":has(z,"9 17 35 53 85 117")?"hal":has(z,"5 14 32 33 51 52")?"meta":has(z,"1 6 7 8 15 16 34")?"non":z>56&&z<72?"lan":z>88&&z<104?"act":has(z,"13 31 49 50 81 82 83 84 113 114 115 116")?"post":"tr";
+const pos=z=>z<3?[1,z<2?1:18]:z<5?[2,z-2]:z<11?[2,z+8]:z<13?[3,z-10]:z<19?[3,z]:z<37?[4,z-18]:z<55?[5,z-36]:z<57?[6,z-54]:z<72?[9,z-54]:z<87?[6,z-68]:z<89?[7,z-86]:z<104?[10,z-86]:[7,z-100];
+const st=z=>z>103?"Unknown":has(z,"1 2 7 8 9 10 17 18 36 54 86")?"Gas":has(z,"35 80")?"Liquid":"Solid";
+const stAt=(e,T)=>e.sub?(T<e.sub?"Solid":"Gas"):e.bp==null?"Unknown":e.mp==null?(T<e.bp?"Liquid":"Gas"):T<e.mp?"Solid":T<e.bp?"Liquid":"Gas";
+const sup=n=>String(n).replace(/\d/g,d=>"⁰¹²³⁴⁵⁶⁷⁸⁹"[d]),sub=n=>String(n).replace(/\d/g,d=>"₀₁₂₃₄₅₆₇₈₉"[d]);
+const BL=e=>e.r>8?(e.z==71||e.z==103?"d":"f"):(e.c<3||e.z==2)?"s":e.c>12?"p":"d";
+const fmtN=v=>{const a=Math.abs(v);return a>=1000?String(Math.round(v)):a>=1?String(+v.toFixed(2)):String(+v.toPrecision(2))};
+const fmtRho=v=>v<.01?`${+(v*1000).toPrecision(3)} g/L`:`${v} g/cm³`;
+/* electron configuration: Madelung order plus the known exceptions. ne = electron count, so ions work too */
+const ORD="1s 2s 2p 3s 3p 4s 3d 4p 5s 4d 5p 6s 4f 5d 6p 7s 5f 6d 7p".split(" "),EX={};
+"24 4s 3d;29 4s 3d;41 5s 4d;42 5s 4d;44 5s 4d;45 5s 4d;46 5s 4d 5s 4d;47 5s 4d;57 4f 5d;58 4f 5d;64 4f 5d;78 6s 5d;79 6s 5d;89 5f 6d;90 5f 6d 5f 6d;91 5f 6d;92 5f 6d;93 5f 6d;96 5f 6d;103 6d 7p".split(";").forEach(t=>{const a=t.split(" ");EX[a[0]]=a.slice(1)});
+const LI=o=>"spdf".indexOf(o[1]),cap=o=>4*LI(o)+2;
+function conf(z,ne=z){let r=Math.max(z,ne),k=z-ne;const c={};for(const o of ORD){c[o]=Math.min(r,cap(o));r-=c[o]}
+ if(ne<=z){const x=EX[z]||[];for(let i=0;i<x.length;i+=2){c[x[i]]--;c[x[i+1]]++}}
+ if(k>0)[...ORD].sort((a,b)=>b[0]-a[0]||LI(b)-LI(a)).forEach(o=>{const t=Math.min(k,c[o]);c[o]-=t;k-=t});
+ return ORD.map(o=>[o,c[o]]).filter(a=>a[1]>0)}
+/* noble-gas core, or null when the configuration does not contain one */
+function core(cf,ne){const N=[86,54,36,18,10,2].find(g=>g<ne);if(!N)return null;const k=new Map(conf(N)),m=new Map(cf);return[...k].some(([o,c])=>(m.get(o)||0)<c)?null:{N,k}}
+function short(cf,ne){const c=core(cf,ne);if(!c)return null;return`[${D[c.N-1].s}] `+cf.map(([o,n])=>[o,n-(c.k.get(o)||0)]).filter(a=>a[1]>0).map(([o,n])=>o+sup(n)).join(" ")}
+/* orbital box diagram, filled by Hund's rule: one up arrow per box first, then pair up */
+const unp=cf=>cf.reduce((t,[o,c])=>{const k=2*LI(o)+1;return t+(c<=k?c:2*k-c)},0);
+function boxes(cf,ne){const c=core(cf,ne);return(c?`<span class="core">[${D[c.N-1].s}]</span>`:"")+cf.filter(([o,n])=>!c||n-(c.k.get(o)||0)>0).map(([o,n])=>{const k=2*LI(o)+1;let h="";for(let i=0;i<k;i++)h+=`<i>${n>i?"↑":""}${n>i+k?"↓":""}</i>`;return`<span class="sb"><span class="bxs">${h}</span><small>${o}${sup(n)}</small></span>`}).join("")}
+/* nucleons: spiral fill, then relax so spheres don't overlap */
+function nuc(p,n){const A=p+n,P=[];let s=7;const rnd=()=>(s=s*16807%2147483647)/2147483647;
+ for(let i=0;i<A;i++){const r=Math.cbrt((i+.5)/A)*1.25*Math.cbrt(A),u=1-2*((i*.618034)%1),a=i*2.39996,q=Math.sqrt(1-u*u);P.push({x:r*q*Math.cos(a),y:r*u,z:r*q*Math.sin(a),p:0})}
+ [...P.keys()].sort(()=>rnd()-.5).forEach((id,k)=>P[id].p=k<p?1:0);
+ for(let it=0;it<40;it++){for(let i=0;i<A;i++)for(let j=i+1;j<A;j++){const a=P[i],b=P[j];let dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z;const d=Math.hypot(dx,dy,dz)||.01;if(d<2){const f=(2-d)/d*.5;dx*=f;dy*=f;dz*=f;a.x-=dx;a.y-=dy;a.z-=dz;b.x+=dx;b.y+=dy;b.z+=dz}}P.forEach(a=>{a.x*=.98;a.y*=.98;a.z*=.98})}
+ const cx=P.reduce((t,a)=>t+a.x,0)/A,cy=P.reduce((t,a)=>t+a.y,0)/A,cz=P.reduce((t,a)=>t+a.z,0)/A;P.forEach(a=>{a.x-=cx;a.y-=cy;a.z-=cz});return P}
+function mk(z,dn=0,q=0){const e=D[z-1],n=Math.max(0,Math.round(e.m)-z+dn),cf=conf(z,z-q),sh=[];cf.forEach(([o,c])=>sh[o[0]-1]=(sh[o[0]-1]||0)+c);
+ const P=nuc(z,n);return{z,e,n,q,cf,sh,P,S:[...P].sort((a,b)=>a.z-b.z),ex:Math.max(...P.map(a=>Math.hypot(a.x,a.y,a.z)))+1,sub:cf[cf.length-1][0],m:0,hp:[0,2]}}
+/* ---- nuclear physics: liquid-drop (semi-empirical mass formula) binding energy in MeV ---- */
+const BE=(Z,A)=>{if(A<2||Z<0||Z>A)return 0;const N=A-Z,a3=Math.cbrt(A);let B=15.75*A-17.8*a3*a3-.711*Z*(Z-1)/a3-23.7*(N-Z)**2/A;if(A%2==0)B+=(Z%2?-1:1)*11.18/Math.sqrt(A);return B};
+/* likely fate of nucleus (Z,N): s stable, b- beta minus, b+ beta plus / EC, a alpha, f fission, n/p past a drip line */
+function dec(Z,N){const A=Z+N,L=STB[Z];if(L&&L.includes(A))return"s";if(A==2)return"p";
+ if(A>2){if(N>0&&BE(Z,A)-BE(Z,A-1)<0)return"n";if(Z>1&&BE(Z,A)-BE(Z-1,A-1)<0)return"p"}
+ const B0=BE(Z,A),qb=BE(Z+1,A)-B0+.782,qe=BE(Z-1,A)-B0-.782,qa=A>8?BE(Z-2,A-4)+28.3-B0:-1;
+ if(Z>=98&&Z*Z/A>39.5&&qa<8)return"f";
+ const b=L?(A>Math.max(...L)?"b-":A<Math.min(...L)?"b+":qb>qe?"b-":"b+"):qb>0?"b-":qe>0?"b+":null;
+ if(qa>0&&(Z>=100||(Z>82||!L)&&(!b||Math.max(qb,qe)<1.5)))return"a";
+ return b||(qa>0?"a":qb>qe?"b-":"b+")}
+/* chart of nuclides grid, trimmed so each row stops at its first unbound cell either side of the valley */
+const NN=180,CODES=["","s","b-","b+","a","f"];let DG=null;
+function grid(){if(DG)return DG;DG=new Uint8Array(119*NN);for(let Z=1;Z<=118;Z++)for(let N=0;N<NN;N++)DG[Z*NN+N]=Math.max(0,CODES.indexOf(dec(Z,N)));
+ for(let Z=1;Z<=118;Z++){const c=Math.min(NN-1,Math.round(D[Z-1].m)-Z);let cut=0;for(let N=c;N<NN;N++){if(!DG[Z*NN+N])cut=1;if(cut)DG[Z*NN+N]=0}cut=0;for(let N=c;N>=0;N--){if(!DG[Z*NN+N])cut=1;if(cut)DG[Z*NN+N]=0}}return DG}
+function fate(Z,N){if(N<NN){const v=grid()[Z*NN+N];if(v)return CODES[v]}const r=dec(Z,N);return r=="n"||r=="p"?r:N>Math.round(D[Z-1].m)-Z?"n":"p"}
+const DC={s:["Stable","This nucleus does not decay, or its half-life is longer than 10¹⁵ years."],"b-":["β⁻ decay","Too many neutrons: a neutron turns into a proton and an electron is thrown out."],"b+":["β⁺ decay or electron capture","Too few neutrons: a proton turns into a neutron."],a:["α decay","Too big to hold together: the nucleus throws out a helium-4 nucleus."],f:["Spontaneous fission","So heavy and so highly charged that it splits into two smaller nuclei."],n:["Unbound","Past the neutron drip line: the extra neutron leaves at once."],p:["Unbound","Past the proton drip line: a proton leaves at once."]};
+const DAU={"b-":[1,-1],"b+":[-1,1],a:[-2,-2],n:[0,-1],p:[-1,0]};
+const DCOL=["","#f4f6fb","#3987e5","#eb6834","#eda100","#1baf7a"];
+/* hydrogen-like orbitals: radial part from Laguerre polynomials, real angular parts */
+const NM=[["s"],["pz","px","py"],["dz²","dxz","dyz","dxy","dx²−y²"],["fz³","fxz²","fyz²","fz(x²−y²)","fxyz","fx(x²−3y²)","fy(3x²−y²)"]],AX=["x","y","z"];
+const ang=(l,m,x,y,z)=>l?l<2?[z,x,y][m]:l<3?[2*z*z-x*x-y*y,x*z,y*z,x*y,x*x-y*y][m]:[z*(2*z*z-3*x*x-3*y*y),x*(4*z*z-x*x-y*y),y*(4*z*z-x*x-y*y),z*(x*x-y*y),x*y*z,x*(x*x-3*y*y),y*(3*x*x-y*y)][m]:1;
+const lag=(k,a,x)=>{let p=1,q=1+a-x;if(!k)return 1;for(let i=2;i<=k;i++){const t=((2*i-1+a-x)*q-(i-1+a)*p)/i;p=q;q=t}return q};
+const Rn=(n,l,r)=>{const h=2*r/n;return h**l*Math.exp(-h/2)*lag(n-l-1,2*l+1,h)};
+const psi=(n,l,m,x,y,z)=>{const r=Math.hypot(x,y,z)||1e-9;return Rn(n,l,r)*ang(l,m,x/r,y/r,z/r)};
+/* ---- periodic table ---- */
+const pt=$("#pt"),AT={};
+D.forEach(e=>{const[r,c]=pos(e.z),k=cat(e.z);Object.assign(e,{r,c,k});AT[r+","+c]=e;const q=conf(e.z),mx=Math.max(...q.map(a=>+a[0][0]));e.v=q.reduce((t,[o,n])=>t+(o[0]==mx&&LI(o)<2?n:0),0);
+ const b=document.createElement("button");b.className="el";b.dataset.z=e.z;b.style.cssText=`--r:${r};--c:${c}`;b.innerHTML=`<small>${e.z}</small><b>${e.s}</b><small class="nm">${e.n}</small>`;e.b=b;e.nm=b.lastChild;pt.append(b)});
+[[6,"57–71",320],[7,"89–103",255]].forEach(([r,t,h])=>{const d=document.createElement("div");d.className="ph";d.style.cssText=`--r:${r};--c:3;--h:${h}`;d.textContent=t;pt.append(d)});
+/* every filter feeds one dimming pass: search, formula, pinned or hovered legend entry, discovery year */
+const F={q:"",fx:null,pin:null,hov:null,yr:null};
+function dim(){D.forEach(e=>{let ok=true;if(!qz){if(F.q)ok=e.n.toLowerCase().includes(F.q)||e.s.toLowerCase()==F.q||""+e.z==F.q;if(ok&&F.fx)ok=F.fx.has(e.s);if(ok&&F.hov!=null)ok=e.l===F.hov||e.l===F.pin;else if(ok&&F.pin!=null)ok=e.l===F.pin}
+ e.b.classList.toggle("dim",!ok);e.b.classList.toggle("und",!qz&&F.yr!=null&&e.yr>F.yr)})}
+/* colour-by modes: categorical ones return [legend label, hue]; heat maps return a value */
+const ERAS=[[1700,"Before 1700",20],[1800,"1700s",45],[1850,"1800–1849",95],[1900,"1850–1899",150],[1950,"1900–1949",200],[2000,"1950–1999",250],[1e9,"2000 onward",300]];
+let TK=298,YR=2026,playT=0;
+const MODES={Category:{c:e=>CT[e.k]},Block:{c:e=>{const b=BL(e);return[b+"-block","spdf".indexOf(b)*80+10]}},
+ State:{c:e=>{const s=stAt(e,TK);return[s,{Solid:30,Liquid:150,Gas:200,Unknown:280}[s]]},ctl:"temp"},
+ Discovery:{c:e=>{const r=ERAS.find(a=>e.yr<a[0]);return[r[1],r[2]]},ctl:"year"},
+ "Outer s+p electrons":{c:e=>[e.v+" outer e⁻",e.v*40]},
+ Electronegativity:{v:e=>e.en,f:v=>v.toFixed(2),u:"Pauling scale. Fluorine pulls hardest on shared electrons."},
+ "Ionization energy":{v:e=>e.ie,f:v=>v.toFixed(2)+" eV",u:"Energy to remove the first electron. Noble gases peak, alkali metals dip."},
+ "Melting point":{v:e=>e.mpv,f:v=>Math.round(v)+" K",u:"Kelvin at 1 atm. Carbon and arsenic sublime instead, shown at their sublimation point."},
+ "Boiling point":{v:e=>e.bpv,f:v=>Math.round(v)+" K",u:"Kelvin at 1 atm."},
+ Density:{v:e=>e.rho,f:fmtRho,log:1,u:"Log scale. Gases are given at 0 °C and 1 atm."},
+ "Atomic mass":{v:e=>e.m,f:v=>v+" u",u:"Standard atomic weight, or the longest-lived isotope's mass number."}};
+const CATM=["Category","Block","State","Discovery","Outer s+p electrons"],HEATM=["Electronegativity","Ionization energy","Melting point","Boiling point","Density","Atomic mass"];
+let mode=store.get("mode","Category");if(!MODES[mode])mode="Category";
+function paint(){const M=MODES[mode],L=new Map();pt.classList.toggle("heat",!!M.v);
+ if(M.c){D.forEach(e=>{const[l,h]=M.c(e),s=e.b.style;e.l=l;L.set(l,h);s.setProperty("--h",h);s.removeProperty("--a");s.removeProperty("--s");e.nm.textContent=e.n});
+  $("#lg").replaceChildren(...[...L].sort((a,b)=>a[1]-b[1]).map(([l,h])=>{const s=document.createElement("button"),on=F.pin===l;s.type="button";s.className="lc"+(on?" selected":"");s.style.setProperty("--h",h);s.textContent=l;s.setAttribute("aria-pressed",String(on));s.title=on?"Click to clear the filter":"Click to keep this filter on";
+   s.onclick=()=>{F.pin=F.pin===l?null:l;paint()};s.onmouseenter=()=>{F.hov=l;dim()};s.onmouseleave=()=>{F.hov=null;dim()};return s}))}
+ else{const T=v=>M.log?Math.log10(v):v,vs=D.map(M.v).filter(v=>v!=null),lo=Math.min(...vs.map(T)),hi=Math.max(...vs.map(T));let nd=0;
+  D.forEach(e=>{const v=M.v(e),s=e.b.style;e.l=null;s.setProperty("--h","var(--heat)");if(v==null){nd++;s.setProperty("--s","0%");s.setProperty("--a",".05");e.nm.textContent="no data"}else{s.setProperty("--s","75%");s.setProperty("--a",(.07+.7*(T(v)-lo)/(hi-lo)).toFixed(3));e.nm.textContent=M.f(v)}});
+  $("#lg").innerHTML=`<div class="grad"><b>${M.f(Math.min(...vs))}</b><i></i><b>${M.f(Math.max(...vs))}</b><span>${M.u}</span>${nd?`<span class="nd">${nd} without data</span>`:""}</div>`}
+ dim();trend();if(M.ctl)slText()}
+$("#md").innerHTML="<span>Color by</span>"+CATM.map(k=>`<button class="bt ch" data-mode="${k}">${k}</button>`).join("")+'<span class="gap">Heat map</span>'+HEATM.map(k=>`<button class="bt ch" data-mode="${k}">${k}</button>`).join("");
+const markMode=()=>$$("#md .bt").forEach(x=>x.classList.toggle("on",x.dataset.mode==mode));
+$("#md").onclick=e=>{const b=e.target.closest("[data-mode]");if(!b)return;mode=b.dataset.mode;F.pin=F.hov=null;store.set("mode",mode);markMode();slRow();paint()};
+/* sliders: temperature for State, year for Discovery */
+const sv=$("#sv"),T2S=t=>Math.sqrt(t/6000)*1000,S2T=s=>Math.round(6000*(s/1000)**2);
+function slRow(){const c=MODES[mode].ctl;$("#sl").hidden=!c;if(c!="year"){F.yr=null;if(playT){clearInterval(playT);playT=0}}
+ if(c=="temp"){$("#sll").textContent="Temperature";sv.min=0;sv.max=1000;sv.step=1;sv.value=T2S(TK);$("#sb").textContent="Room temperature"}
+ if(c=="year"){$("#sll").textContent="Known by";sv.min=1650;sv.max=2026;sv.step=1;sv.value=YR;F.yr=YR;$("#sb").textContent=playT?"Pause":"Play history"}
+ if(c)slText()}
+function slText(){const c=MODES[mode].ctl;if(c=="temp"){const n={Solid:0,Liquid:0,Gas:0};D.forEach(e=>{const s=stAt(e,TK);if(s in n)n[s]++});$("#sn").textContent=`${TK} K (${Math.round(TK-273.15)} °C): ${n.Solid} solid, ${n.Liquid} liquid, ${n.Gas} gas`}
+ if(c=="year"){const k=D.filter(e=>e.yr<=YR).length;$("#sn").textContent=`${YR}: ${k} of 118 elements known${YR>=1869&&YR<1875?". Mendeleev publishes his table in 1869":""}`}}
+sv.oninput=()=>{if(MODES[mode].ctl=="temp"){TK=S2T(+sv.value);paint()}else{YR=+sv.value;F.yr=YR;dim();slText()}};
+function stopPlay(){clearInterval(playT);playT=0;$("#sb").textContent="Play history"}
+$("#sb").onclick=()=>{if(MODES[mode].ctl=="temp"){TK=298;slRow();paint();return}
+ if(playT)return stopPlay();if(YR>=2026)YR=1650;playT=setInterval(()=>{YR=Math.min(2026,YR+3);sv.value=YR;F.yr=YR;dim();slText();if(YR>=2026)stopPlay()},70);$("#sb").textContent="Pause"};
+/* search and formula */
+$("#q").oninput=e=>{F.q=e.target.value.trim().toLowerCase();dim()};
+function parseF(src){const s=src.replace(/\s+/g,""),out=new Map();
+ for(const part of s.split(/[·*.•]/)){if(!part)continue;let i=0,k=1;const lead=part.match(/^\d+/);if(lead){k=+lead[0];i=lead[0].length}
+  const cnt=()=>{const m=part.slice(i).match(/^\d+/);if(m){i+=m[0].length;return+m[0]}return 1};
+  const grp=()=>{const m=new Map();while(i<part.length){const ch=part[i];
+    if(ch=="("||ch=="["){i++;const g=grp();if(part[i]!=")"&&part[i]!="]")throw"A bracket is never closed.";i++;const n=cnt();g.forEach((v,e)=>m.set(e,(m.get(e)||0)+v*n))}
+    else if(ch==")"||ch=="]")break;
+    else{const mm=part.slice(i).match(/^[A-Z][a-z]?/);if(!mm)throw`“${esc(ch)}” is not part of an element symbol. Symbols start with a capital, as in NaCl.`;let sy=mm[0];if(!SYM[sy]&&sy.length>1&&SYM[sy[0]])throw`There is no element “${esc(sy)}”. Did you mean ${sy[0]}${sy[1].toUpperCase()}?`;if(!SYM[sy])throw`There is no element “${esc(sy)}”.`;i+=sy.length;const n=cnt();m.set(sy,(m.get(sy)||0)+n)}}
+   return m};
+  const g=grp();if(i<part.length)throw"There is a closing bracket without an opening one.";g.forEach((v,e)=>out.set(e,(out.get(e)||0)+v*k))}
+ return out}
+function fx(){const s=$("#fx").value.trim(),o=$("#fxo");if(!s){F.fx=null;o.hidden=true;dim();return}
+ try{const m=parseF(s);if(!m.size)throw"Type a formula such as H2O.";let tot=0;const rows=[...m].map(([k,n])=>({e:SYM[k],n,w:n*SYM[k].m})).sort((a,b)=>b.w-a.w);rows.forEach(r=>tot+=r.w);
+  o.innerHTML=`<div><b>${esc(s).replace(/([A-Za-z)\]])(\d+)/g,(x,a,n)=>a+sub(n))}</b> weighs <b>${tot.toFixed(3)} g/mol</b></div><div class="comp" aria-hidden="true">${rows.map(r=>`<i style="--h:${CT[r.e.k][1]};flex:${r.w}"></i>`).join("")}</div><div class="cl">${rows.map(r=>`<span><i style="--h:${CT[r.e.k][1]}"></i>${r.e.n} ${(r.w/tot*100).toFixed(1)}% <em>${r.n} × ${r.e.m}</em></span>`).join("")}</div>`;F.fx=new Set(m.keys())}
+ catch(err){o.innerHTML=`<span class="er">${typeof err=="string"?err:"That formula could not be read."}</span>`;F.fx=null}
+ o.hidden=false;dim()}
+$("#fx").oninput=fx;
+/* hover readout */
+function hvText(d){const M=MODES[mode];let x=`${CT[d.k][0]}, atomic number ${d.z}, mass ${d.m} u`;
+ if(M.v){const v=M.v(d);x=`${mode}: ${v==null?"no data":M.f(v)}. `+x}else if(mode=="Discovery")x=(d.yr?`Discovered ${d.yr}. `:"Known since antiquity. ")+x;else if(mode=="State")x=`${stAt(d,TK)} at ${TK} K. `+x;
+ return`<big>${d.n}</big>${x}`}
+const HV0=$("#hv").innerHTML;
+pt.onmouseover=pt.onfocusin=e=>{const b=e.target.closest(".el");if(b&&!qz){const d=D[b.dataset.z-1];$("#hv").innerHTML=hvText(d);if(MODES[mode].v)setTH(d.z,1)}};
+pt.onmouseleave=()=>{if(MODES[mode].v)setTH(0,1)};
+pt.onkeydown=e=>{const b=e.target.closest(".el"),d={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[e.key];if(!b||!d)return;e.preventDefault();let{r,c}=D[b.dataset.z-1];
+ for(let i=0;i<18;i++){r+=d[0];c+=d[1];if(r<1||r>10||c<1||c>18)return;const t=AT[r+","+c];if(t){t.b.focus();return}}};
+addEventListener("keydown",e=>{if(e.key=="/"&&ov.hidden&&!/INPUT|TEXTAREA/.test(document.activeElement.tagName)){e.preventDefault();$("#q").focus()}});
+/* ---- trend chart: the heat-map property against atomic number ---- */
+let TH=0;const TRP={L:52,R:14,W:1};
+function setTH(z,tile){if(z==TH)return;if(TH)D[TH-1].b.classList.remove("hl");TH=z;if(z&&!tile){D[z-1].b.classList.add("hl");$("#hv").innerHTML=hvText(D[z-1])}trend()}
+function ticks(lo,hi,n){const raw=(hi-lo)/n,p=10**Math.floor(Math.log10(raw)),s=[1,2,2.5,5,10].map(k=>k*p).find(k=>k>=raw),t=[];for(let v=Math.ceil(lo/s)*s;v<=hi+1e-9;v+=s)t.push(+v.toPrecision(6));return t}
+function trend(){const M=MODES[mode],w=$("#trw");w.hidden=!M.v;if(!M.v)return;const c=$("#tr"),W=c.clientWidth,H=c.clientHeight;if(!W)return;
+ const d=Math.min(devicePixelRatio||1,2);c.width=W*d;c.height=H*d;const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);
+ const cs=getComputedStyle(document.documentElement),C=k=>cs.getPropertyValue(k).trim(),tx=C("--tx"),mu=C("--mu"),ln=C("--ln"),ac=C("--ac"),pn=C("--pn");
+ const T=v=>M.log?Math.log10(v):v,P=D.map(e=>{const v=M.v(e);return v==null?null:T(v)}),vs=P.filter(v=>v!=null);let lo=Math.min(...vs),hi=Math.max(...vs);
+ if(M.log){lo=Math.floor(lo);hi=Math.ceil(hi)}else{const p=(hi-lo)*.06;lo=Math.max(0,lo-p);hi+=p}
+ const{L,R}=TRP,TP=20,B=26,X=z=>L+(z-1)/117*(W-L-R),Y=v=>TP+(1-(v-lo)/(hi-lo))*(H-TP-B);TRP.W=W;
+ x.font="11px 'Space Grotesk',system-ui,sans-serif";x.lineWidth=1;
+ (M.log?ticks(lo,hi,hi-lo).filter(Number.isInteger):ticks(lo,hi,4)).forEach(t=>{const y=Math.round(Y(t))+.5;x.strokeStyle=ln;x.beginPath();x.moveTo(L,y);x.lineTo(W-R,y);x.stroke();x.fillStyle=mu;x.textAlign="right";x.textBaseline="middle";x.fillText(fmtN(M.log?10**t:t),L-8,y)});
+ x.setLineDash([2,4]);x.textAlign="center";x.textBaseline="bottom";[2,10,18,36,54,86,118].forEach(z=>{const px=Math.round(X(z))+.5;x.strokeStyle=ln;x.beginPath();x.moveTo(px,TP);x.lineTo(px,H-B);x.stroke();x.fillStyle=mu;x.fillText(D[z-1].s,Math.min(px,W-R-6),TP-4)});x.setLineDash([]);
+ x.textBaseline="top";(W<600?[1,30,60,90]:W<900?[1,20,40,60,80]:[1,20,40,60,80,100]).forEach(z=>x.fillText(z,X(z),H-B+7));x.textAlign="right";x.fillText(W<600?"Z →":"Atomic number →",W-R,H-B+7);
+ x.strokeStyle=ac;x.lineWidth=2;x.lineJoin="round";x.beginPath();let on=0;P.forEach((v,i)=>{if(v==null){on=0;return}const px=X(i+1),py=Y(v);on?x.lineTo(px,py):x.moveTo(px,py);on=1});x.stroke();
+ x.fillStyle=ac;P.forEach((v,i)=>{if(v!=null){x.beginPath();x.arc(X(i+1),Y(v),2,0,TAU);x.fill()}});
+ if(TH){const px=X(TH),v=P[TH-1],e=D[TH-1];x.strokeStyle=mu;x.lineWidth=1;x.beginPath();x.moveTo(Math.round(px)+.5,TP);x.lineTo(Math.round(px)+.5,H-B);x.stroke();
+  const py=v==null?TP+12:Y(v);if(v!=null){x.fillStyle=pn;x.beginPath();x.arc(px,py,6.5,0,TAU);x.fill();x.fillStyle=ac;x.beginPath();x.arc(px,py,4.5,0,TAU);x.fill()}
+  const s=`${e.n} (${e.z}): ${v==null?"no data":M.f(M.v(e))}`;x.font="500 12px 'Space Grotesk',system-ui,sans-serif";const tw=x.measureText(s).width+16,bx=Math.min(W-R-tw,Math.max(L,px-tw/2));let by=py-38;if(by<0)by=py+12;
+  x.fillStyle=pn;x.strokeStyle=ln;x.beginPath();x.roundRect?x.roundRect(bx,by,tw,24,6):x.rect(bx,by,tw,24);x.fill();x.stroke();x.fillStyle=tx;x.textAlign="left";x.textBaseline="middle";x.fillText(s,bx+8,by+12)}
+ $("#trt").textContent=mode+" across the table";$("#trs").textContent="Dashed lines mark each noble gas, where a period ends. Hover to read a value, click to open the element."}
+const trZ=e=>{const r=e.target.getBoundingClientRect(),z=Math.round((e.clientX-r.left-TRP.L)/(TRP.W-TRP.L-TRP.R)*117+1);return z>=1&&z<=118?z:0};
+$("#tr").onpointermove=e=>setTH(trZ(e));$("#tr").onpointerleave=()=>setTH(0);$("#tr").onclick=e=>{const z=trZ(e);if(z)open(z,D[z-1].b)};
+addEventListener("resize",trend);
+/* ---- quiz: tiles are hidden, find the element by its place in the table ---- */
+let qz=0,qs=0,qm=0,qk=0,qbest=store.get("best",0),qtype=store.get("qtype","name"),QH=0;
+const qname=()=>qtype=="symbol"?qz.s:qtype=="number"?"element "+qz.z:qz.n;
+function qh(m){$("#hv").innerHTML=`<big>Find ${qname()}</big>${m}`;$("#qsc").textContent=`Score ${qs} · Misses ${qm} · Streak ${qk} · Best streak ${qbest}`;$$("#qbar [data-qt]").forEach(b=>b.classList.toggle("on",b.dataset.qt==qtype))}
+function qnew(){const p=qz;do qz=D[Math.random()*118|0];while(qz==p);QH=0}
+const flash=f=>D.filter(f).forEach(e=>{e.b.classList.remove("hint");void e.b.offsetWidth;e.b.classList.add("hint");setTimeout(()=>e.b.classList.remove("hint"),1500)});
+$("#qb").onclick=()=>{const on=pt.classList.toggle("qz");$("#qb").classList.toggle("on",on);$("#qb").textContent=on?"End quiz":"Quiz";$("#qbar").hidden=!on;qs=qm=qk=0;if(on){qnew();qh("Labels are hidden, so use the shape of the table.")}else{qz=0;$("#hv").innerHTML=HV0}dim()};
+$("#qbar").onclick=e=>{const b=e.target.closest("button");if(!b||!qz)return;
+ if(b.dataset.qt){qtype=b.dataset.qt;store.set("qtype",qtype);qh("New clue style, same element.");return}
+ if(b.dataset.qa=="skip"){qm++;qk=0;const p=qz;flash(e=>e==p);qnew();qh(`${p.n} was the flashing tile.`);return}
+ const t=qz,per=t.r>8?t.r-3:t.r;
+ if(QH==0){flash(e=>e.r==t.r);qh(t.r>8?`It is in the ${t.r==9?"lanthanide":"actinide"} row below the table.`:`It is in period ${per}, the flashing row.`)}
+ else if(QH==1){flash(e=>e.c==t.c&&(t.r>8?e.r==t.r:e.r<8));qh(t.r>8?`Column ${t.c-2} of that row.`:`It is in group ${t.c}, the flashing column.`)}
+ else{flash(e=>e==t);qh("There it is.")}QH++};
+/* ---- detail view ---- */
+let cur,tab=0,DN=0,IQ=0,FO,FP,ZT=0,ZD=20,TG=[],R3,SC,CAM,G,E=[],GT,EG,rx=.35,ry=0,auto=1,drag=0,CL=null;
+const pan=$("#pan"),ov=$("#ov"),HM=document.createElement("canvas");HM.width=HM.height=180;
+const hash=s=>{try{history.replaceState(null,"",s?"#"+s:location.pathname+location.search)}catch(e){}};
+pt.onclick=e=>{const b=e.target.closest(".el");if(!b)return;const z=+b.dataset.z;
+ if(qz){const hit=z==qz.z;if(hit){qs++;qk++;if(qk>qbest){qbest=qk;store.set("best",qbest)}}else{qm++;qk=0}b.classList.add(hit?"ok":"no");setTimeout(()=>b.classList.remove("ok","no"),500);
+  if(hit){const p=qz;qnew();qh(`Yes, that was ${p.n}.`)}else qh(`That was ${D[z-1].n}.`);return}
+ open(z,b)};
+$("#rnd").onclick=()=>{const e=D[Math.random()*118|0];open(e.z,e.b)};
+const fit=b=>{pan.style.transform="none";const r=b.getBoundingClientRect(),p=pan.getBoundingClientRect();return`translate(${r.left-p.left}px,${r.top-p.top}px) scale(${r.width/p.width},${r.height/p.height})`};
+function open(z,b){DN=IQ=0;cur=mk(z);hash(cur.e.s);ov.hidden=false;ov.style.opacity="";document.body.style.overflow="hidden";pan.classList.add("z");if(!R3)initGL();render();
+ pan.style.transition="none";pan.style.transform=fit(b);pan.offsetWidth;
+ pan.style.transition="transform .65s cubic-bezier(.2,.85,.25,1)";pan.style.transform="none";pan.style.opacity=1;pan.classList.remove("z")}
+function cls(){const b=D[cur.z-1].b;hash("");if($("#s3").classList.contains("fsx"))fake3(false);pan.classList.add("z");pan.style.transition="none";const t=fit(b);pan.offsetWidth;
+ pan.style.transition="transform .45s cubic-bezier(.5,0,.8,.3),opacity .4s";pan.style.transform=t;pan.style.opacity=0;ov.style.transition="opacity .4s";ov.style.opacity=0;
+ setTimeout(()=>{ov.hidden=true;ov.style.transition="";document.body.style.overflow="";pan.style.opacity=1;pan.style.transform="none";b.focus({preventScroll:true})},430)}
+const go=d=>{const z=cur.z+d;if(z>0&&z<119){DN=IQ=0;cur=mk(z);hash(cur.e.s);render()}};
+function setNuc(Z,N){const e=D[Z-1];DN=N-(Math.round(e.m)-Z);IQ=0;if(Z!=cur.z)hash(e.s);cur=mk(Z,DN,0);render()}
+$("#cl").onclick=cls;$("#pv").onclick=()=>go(-1);$("#nx").onclick=()=>go(1);ov.onclick=e=>e.target==ov&&cls();
+addEventListener("keydown",e=>{if(ov.hidden||/INPUT/.test(document.activeElement.tagName))return;if(e.key=="Escape"&&$("#s3").classList.contains("fsx"))return fake3(false);e.key=="Escape"?cls():e.key=="ArrowRight"?go(1):e.key=="ArrowLeft"&&go(-1)});
+$("#tb").onclick=e=>{const b=e.target.closest("[data-t]");if(!b)return;tab=+b.dataset.t;$$("#tb .bt").forEach(x=>x.classList.toggle("on",x==b));render()};
+$("#orb").onclick=e=>{const b=e.target.closest("[data-o],[data-m]");if(!b)return;if(b.dataset.o){cur.sub=b.dataset.o;cur.m=0}else cur.m=+b.dataset.m;render()};
+$("#ctl").onclick=e=>{const b=e.target.closest("button");if(!b)return;if(b.dataset.r){DN=IQ=0;FO=FP=null;ZT=ZD;rx=.35;ry=0;auto=1}else b.dataset.d?DN+=+b.dataset.d:IQ+=+b.dataset.q;const s=cur.sub;cur=mk(cur.z,DN,IQ);cur.cf.some(a=>a[0]==s)&&(cur.sub=s);render()};
+$("#info").onclick=e=>{const b=e.target.closest("[data-dz]");if(b)setNuc(+b.dataset.dz,+b.dataset.dn)};
+const LAB=["3D atom: electrons orbiting the nucleus (shell spacing not to scale)","3D nucleus: protons (red) and neutrons (blue)","3D orbital: 16,000 sampled electron positions"];
+function render(){fill();$("#orb").hidden=tab!=2;if(tab==2){oc();heat()}$("#c2").classList.toggle("nav",tab==1);
+ $("#cap2").textContent=["2D Bohr diagram, with the nucleus enlarged","2D chart of nuclides: protons up, neutrons across. Click any square to build that nucleus.",`2D orbital slice in the ${AX[cur.hp[0]]}${AX[cur.hp[1]]} plane`][tab];$("#lab").textContent=LAB[tab];build();rs()}
+function fill(){const{e,z,n,q,cf,sh}=cur,k=CT[e.k],f=e.r>8,g=f?(z==71||z==103?3:"–"):e.c,bl=BL(e),ne=z-q,sn=short(cf,ne),qt=q?(q>0?"+":"−")+Math.abs(q):"0",A=z+n,u=unp(cf),rad=z==43||z==61||z>83;
+ const K=v=>v==null?"—":`${+v.toFixed(2)} K<span class="u">${Math.round(v-273.15)} °C</span>`;
+ pan.style.setProperty("--h",k[1]);$("#big").innerHTML=`<small>${z}</small><b>${e.s}${q?`<sup style="font-size:14px">${Math.abs(q)>1?Math.abs(q):""}${q>0?"+":"−"}</sup>`:""}</b>`;
+ $("#ttl").innerHTML=`<h2>${e.n}${q?" ion":""}</h2><span>${k[0]}, ${z>103?"state unknown":st(z).toLowerCase()+" at room temperature"}${rad?", radioactive":""}</span>`;
+ $("#ctl").innerHTML=`<span>Isotope</span><button class="bt ch" data-d="-1" aria-label="Remove a neutron"${n<1?" disabled":""}>−</button><b>${sup(A)}${e.s}</b><button class="bt ch" data-d="1" aria-label="Add a neutron"${n>=170?" disabled":""}>+</button><span>Charge</span><button class="bt ch" data-q="-1" aria-label="Add an electron"${ne>=118||q<=-3?" disabled":""}>−</button><b>${qt}</b><button class="bt ch" data-q="1" aria-label="Remove an electron"${ne<=1||q>=7?" disabled":""}>+</button><button class="bt ch" data-r="1" aria-label="Reset isotope, charge and view">Reset</button>`;
+ const S=[["Protons",z],["Neutrons",n],["Electrons",ne],["Mass number",A],["Atomic mass",e.m+" u"],["Group",g],["Period",f?e.r-3:e.r],["Block",bl],["Charge",q?qt:"0 (neutral)"],["Electronegativity",e.en??"—"],["1st ionization",e.ie?e.ie+" eV":"—"],
+  ...(e.sub?[["Sublimes at",K(e.sub)]]:[["Melting point",K(e.mp)],["Boiling point",K(e.bp)]]),["Density",e.rho==null?"—":fmtRho(e.rho)],["Discovered",e.yr?e.yr:"Ancient"],["Unpaired e⁻",`${u}<span class="u">${u?"paramagnetic":"diamagnetic"}</span>`]];
+ const fa=fate(z,n),dd=DAU[fa],Z2=dd&&z+dd[0],N2=dd&&n+dd[1],ok=dd&&Z2>=1&&Z2<=118&&N2>=0,be=BE(z,A),real=fa=="s";
+ $("#info").innerHTML=S.map(([a,b])=>`<div class="st"><small>${a}</small><b>${b}</b></div>`).join("")
+ +`<div class="st w2"><small>Electron configuration</small><b>${cf.map(([o,c])=>o+sup(c)).join(" ")}</b></div>`+(sn?`<div class="st w2"><small>Noble-gas shorthand</small><b>${sn}</b></div>`:"")
+ +`<div class="st w2"><small>Orbital diagram${sn?" (outside the noble-gas core)":""}</small><div class="obx">${boxes(cf,ne)}</div><p>Each box is one orbital holding up to two electrons of opposite spin. Electrons spread out one per box before they pair up (Hund's rule), which leaves ${u} unpaired.</p></div>`
+ +`<div class="st w2"><small>Electrons per shell (K, L, M…)</small><b>${sh.join(", ")}</b></div>`
+ +`<div class="st w2"><small>Nucleus ${sup(A)}${e.s}${real?"":", likely fate (estimate)"}</small><b>${DC[fa][0]}</b><p>${DC[fa][1]}${A>=12&&!/[np]/.test(fa)?` Binding energy is about ${Math.round(be)} MeV, or ${(be/A).toFixed(2)} MeV per nucleon.`:""}${real?"":" Fates other than “stable” come from the liquid-drop model, which ignores shell effects, so treat them as a guide."}</p>${ok?`<button class="bt ch" data-dz="${Z2}" data-dn="${N2}">Follow the decay to ${sup(Z2+N2)}${D[Z2-1].s}</button>`:""}</div>`
+ +`<div class="nt">The default neutron count comes from the rounded atomic mass, so it matches the commonest isotope for most elements. Ions lose or gain electrons in the outermost shells first. Melting point, density and the other bulk properties are for the neutral element. Orbitals are hydrogen-like shapes, which are the same for every element but grow with n.</div>`}
+function oc(){const n=+cur.sub[0],l=LI(cur.sub),c=cur.cf.find(a=>a[0]==cur.sub)[1],all=cur.m<0;
+ $("#orb").innerHTML=`<div class="row">${cur.cf.map(([o,c])=>`<button class="bt ch${o==cur.sub?" on":""}" data-o="${o}">${o}<sup>${c}</sup></button>`).join("")}</div><div class="row">${NM[l].map((t,i)=>`<button class="bt ch${i==cur.m?" on":""}" data-m="${i}">${t}</button>`).join("")}${l?`<button class="bt ch${all?" on":""}" data-m="-1">All ${2*l+1}</button>`:""}</div><p>${cur.e.n} has ${c} electron${c>1?"s":""} in ${cur.sub} (room for ${cap(cur.sub)}). This orbital has ${n-l-1} radial node${n-l-1==1?"":"s"} and ${l} angular node${l==1?"":"s"}. ${all?"Each orbital of the subshell has its own color.":"Blue and orange are opposite signs of the wave function."}</p><div class="st"><small>What am I looking at?</small><p>The cloud maps where an electron in ${cur.sub} is likely to be found. It shows probability, not an orbit: denser areas are more likely.</p><p>Shape: ${["Spherical, with no preferred direction.","Two lobes on opposite sides of the nucleus, with a node at the nucleus itself. The three p orbitals point along x, y and z.","Mostly a four-lobed cloverleaf, except dz², which has two lobes and a ring. The five d orbitals shape the colors and magnetism of transition metals.","Eight or more lobes in complex patterns. The seven f orbitals fill across the lanthanides and actinides."][l]} ${all?`You are viewing all ${2*l+1} at once. Added together, a full subshell is perfectly spherical (Unsöld's theorem), which the 2D slice shows.`:`You are viewing ${NM[l][cur.m]}.`}</p><p>Size grows with n, so a higher shell is a bigger cloud. Each orbital holds at most 2 electrons with opposite spin, and ${cur.sub} has ${cap(cur.sub)/2} orbital${l?"s":""}: use the buttons above to compare them.</p></div>`}
+function heat(){const n=+cur.sub[0],l=LI(cur.sub),m=cur.m,E=(3.2*n*n+6)*.7,S=180,P=[[0,2],[0,1],[1,2]];
+ const f=(a,b,u,v)=>{const q=[0,0,0];q[a]=u;q[b]=v;if(m<0){let s=0;for(let k=0;k<2*l+1;k++){const p=psi(n,l,k,...q);s+=p*p}return Math.sqrt(s)}return psi(n,l,m,...q)};let best=0,bs=-1;
+ P.forEach((p,i)=>{let s=0;for(let a=0;a<24;a++)for(let b=0;b<24;b++){const v=f(p[0],p[1],((a+.5)/12-1)*E,((b+.5)/12-1)*E);s+=v*v}if(s>bs){bs=s;best=i}});
+ cur.hp=P[best];const[a,b]=cur.hp,o=HM.getContext("2d"),im=o.createImageData(S,S),V=[];let mx=0;
+ for(let j=0;j<S;j++)for(let i=0;i<S;i++){const v=f(a,b,((i+.5)/S*2-1)*E,(1-(j+.5)/S*2)*E);V.push(v);mx=Math.max(mx,Math.abs(v))}
+ V.forEach((v,k)=>{const q=Math.pow(Math.abs(v)/mx,.8),c=m<0?[110,210,255]:v>0?[60,170,255]:[255,140,50];for(let i=0;i<3;i++)im.data[k*4+i]=[5,7,13][i]+(c[i]-[5,7,13][i])*q;im.data[k*4+3]=255});o.putImageData(im,0,0)}
+/* ---- 2D drawing ---- */
+function drawNuc(x,cx,cy,R){const P=cur.S,s=R/cur.ex;P.forEach(a=>{x.fillStyle=`hsl(${a.p?0:212} 90% ${40+22*a.z/cur.ex}%)`;x.beginPath();x.arc(cx+a.x*s,cy-a.y*s,s,0,TAU);x.fill();x.strokeStyle="rgba(0,0,0,.35)";x.lineWidth=1;x.stroke();x.fillStyle="rgba(255,255,255,.35)";x.beginPath();x.arc(cx+a.x*s-s*.3,cy-a.y*s-s*.3,s*.28,0,TAU);x.fill()})}
+function nucChart(x,W,d){const g=grid(),x0=30*d,yb=W-24*d,cs=(W-x0-8*d)/NN,cz=cur.z,cn=cur.n,F2=`${10*d}px 'Space Grotesk',sans-serif`;x.font=F2;
+ x.strokeStyle="rgba(255,255,255,.1)";x.lineWidth=d;x.setLineDash([2*d,3*d]);x.fillStyle="#6b7590";x.textAlign="center";x.textBaseline="top";
+ [8,20,28,50,82,126].forEach(m=>{const px=x0+m*cs;x.beginPath();x.moveTo(px,yb);x.lineTo(px,yb-118*cs);x.stroke();x.fillText(m,px,yb+4*d);if(m<=118){const py=yb-m*cs;x.beginPath();x.moveTo(x0,py);x.lineTo(x0+NN*cs,py);x.stroke()}});x.setLineDash([]);
+ x.textAlign="right";x.textBaseline="middle";[8,20,28,50,82].forEach(m=>x.fillText(m,x0-4*d,yb-(m-.5)*cs));x.textAlign="right";x.textBaseline="bottom";x.fillText("Neutrons N →  (dashed: magic numbers)",W-8*d,yb-2*d);
+ for(let k=1;k<6;k++){x.fillStyle=DCOL[k];x.globalAlpha=k==1?1:.55;for(let Z=1;Z<=118;Z++)for(let N=0;N<NN;N++)if(g[Z*NN+N]==k)x.fillRect(x0+N*cs,yb-Z*cs,cs,cs)}x.globalAlpha=1;
+ const px=x0+(cn+.5)*cs,py=yb-(cz-.5)*cs;x.strokeStyle="rgba(255,255,255,.4)";x.lineWidth=d;x.beginPath();x.moveTo(x0,py);x.lineTo(px,py);x.lineTo(px,yb);x.stroke();x.strokeStyle="#fff";x.lineWidth=2*d;x.beginPath();x.arc(px,py,Math.max(5*d,cs*1.6),0,TAU);x.stroke();
+ const lx=W-150*d,ly=yb-118*d;x.fillStyle="rgba(5,7,13,.85)";x.fillRect(lx-6*d,ly-6*d,152*d,100*d);x.textAlign="left";x.textBaseline="middle";
+ [[1,"Stable"],[2,"β⁻ decay"],[3,"β⁺ / electron capture"],[4,"α decay"],[5,"Spontaneous fission"]].forEach(([k,t],i)=>{x.fillStyle=DCOL[k];x.globalAlpha=k==1?1:.8;x.fillRect(lx,ly+i*16*d+2*d,9*d,9*d);x.globalAlpha=1;x.fillStyle="#c5cee0";x.fillText(t,lx+15*d,ly+i*16*d+7*d)});
+ x.fillStyle="#8b95ab";x.fillText("Colors are estimates",lx,ly+82*d);
+ const kk=13,h=6,IS=Math.round(W*.4),ix=x0+26*d,iy=10*d,c=IS/kk;x.fillStyle="rgba(5,7,13,.94)";x.fillRect(ix-30*d,iy-6*d,IS+36*d,IS+24*d);x.strokeStyle="rgba(255,255,255,.18)";x.lineWidth=d;x.strokeRect(ix-30*d,iy-6*d,IS+36*d,IS+24*d);
+ x.font=`${Math.min(11*d,c*.42)}px 'Space Grotesk',sans-serif`;x.textBaseline="middle";
+ for(let j=0;j<kk;j++){const Z=cz+h-j;if(Z<1||Z>118)continue;x.fillStyle=Z==cz?"#fff":"#8b95ab";x.textAlign="right";x.fillText(D[Z-1].s,ix-5*d,iy+(j+.5)*c);x.textAlign="center";
+  for(let i=0;i<kk;i++){const N=cn-h+i;if(N<0||N>=NN)continue;const v=g[Z*NN+N];x.fillStyle=v?DCOL[v]:"rgba(255,255,255,.05)";x.globalAlpha=v>1?.8:1;x.fillRect(ix+i*c+d,iy+j*c+d,c-2*d,c-2*d);x.globalAlpha=1;if(v&&c>16*d){x.fillStyle="#05070d";x.fillText(Z+N,ix+(i+.5)*c,iy+(j+.5)*c)}}}
+ x.strokeStyle="#fff";x.lineWidth=2*d;x.strokeRect(ix+h*c,iy+h*c,c,c);x.font=F2;x.fillStyle="#8b95ab";x.textAlign="left";x.textBaseline="top";x.fillText(`Close-up around ${sup(cz+cn)}${D[cz-1].s}, labels are mass numbers`,ix-26*d,iy+IS+2*d);
+ CL={W,x0,yb,cs,ix,iy,IS,c,n0:cn-h,z0:cz+h}}
+$("#c2").onclick=e=>{if(tab!=1||!CL)return;const r=e.target.getBoundingClientRect(),px=(e.clientX-r.left)*CL.W/r.width,py=(e.clientY-r.top)*CL.W/r.height;let Z,N;
+ if(px>=CL.ix&&px<CL.ix+CL.IS&&py>=CL.iy&&py<CL.iy+CL.IS){N=CL.n0+Math.floor((px-CL.ix)/CL.c);Z=CL.z0-Math.floor((py-CL.iy)/CL.c)}else{N=Math.floor((px-CL.x0)/CL.cs);Z=Math.floor((CL.yb-py)/CL.cs)+1}
+ if(Z>=1&&Z<=118&&N>=0&&N<NN&&grid()[Z*NN+N])setNuc(Z,N)};
+function d2(t=0){const c=$("#c2");if(!c.clientWidth||!cur)return;const x=c.getContext("2d"),W=c.width,d=W/c.clientWidth,C=W/2;x.fillStyle="#05070d";x.fillRect(0,0,W,W);x.font=`${12*d}px 'Space Grotesk',sans-serif`;x.textAlign="left";x.textBaseline="alphabetic";
+ if(tab==2){x.drawImage(HM,0,0,W,W);x.strokeStyle="rgba(255,255,255,.2)";x.lineWidth=d;x.beginPath();x.moveTo(C,0);x.lineTo(C,W);x.moveTo(0,C);x.lineTo(W,C);x.stroke();x.fillStyle="#8b95ab";x.fillText(AX[cur.hp[0]]+" →",W-44*d,C-6*d);x.fillText(AX[cur.hp[1]]+" ↑",C+6*d,16*d);return}
+ if(tab==1)return nucChart(x,W,d);
+ const N=cur.sh.length,rm=C-18*d,r0=rm*.2,K="KLMNOPQ";drawNuc(x,C,C,r0*.85);
+ cur.sh.forEach((cnt,k)=>{const r=r0+(rm-r0)*(k+1)/N,h=190+k*40;x.strokeStyle=`hsla(${h},80%,60%,.45)`;x.lineWidth=1.2*d;x.beginPath();x.arc(C,C,r,0,TAU);x.stroke();
+  for(let j=0;j<cnt;j++){const a=j/cnt*TAU+t*(k%2?-1:1)*.7/(k+1)+k;x.fillStyle=`hsl(${h} 90% 65%)`;x.beginPath();x.arc(C+r*Math.cos(a),C+r*Math.sin(a),Math.max(2.2*d,Math.min(5*d,r*TAU/cnt/2.6)),0,TAU);x.fill()}
+  x.fillStyle="#8b95ab";x.fillText(`${K[k]}: ${cnt}`,C+5*d,C-r-4*d)})}
+/* ---- 3D scene ---- */
+function initGL(){const w=$("#s3");R3=new THREE.WebGLRenderer({antialias:true,alpha:true});R3.setPixelRatio(Math.min(devicePixelRatio||1,2));w.prepend(R3.domElement);
+ SC=new THREE.Scene();CAM=new THREE.PerspectiveCamera(45,1,.1,500);CAM.position.z=20;
+ SC.add(new THREE.AmbientLight(0x8899bb,.6));let l=new THREE.PointLight(0xffffff,1.3,0,1);l.position.set(10,12,16);SC.add(l);l=new THREE.PointLight(0x6aa0ff,.9,0,1);l.position.set(-14,-8,10);SC.add(l);
+ const c=document.createElement("canvas");c.width=c.height=64;const x=c.getContext("2d"),g=x.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,"rgba(255,255,255,1)");g.addColorStop(.25,"rgba(255,255,255,.45)");g.addColorStop(1,"rgba(255,255,255,0)");x.fillStyle=g;x.fillRect(0,0,64,64);GT=new THREE.CanvasTexture(c);EG=new THREE.SphereGeometry(.15,20,14);
+ const sp=new Float32Array(1500);for(let i=0;i<500;i++){const u=Math.random()*2-1,a=Math.random()*TAU,q=Math.sqrt(1-u*u),r=90+Math.random()*30;sp.set([r*q*Math.cos(a),r*u,r*q*Math.sin(a)],i*3)}
+ const sg=new THREE.BufferGeometry();sg.setAttribute("position",new THREE.BufferAttribute(sp,3));SC.add(new THREE.Points(sg,new THREE.PointsMaterial({color:0x9db4ff,size:.7,transparent:true,opacity:.7})));
+ G=new THREE.Group();SC.add(G);const cv=R3.domElement;let lx,ly,sx,sy;
+ cv.onpointerdown=e=>{drag=1;sx=lx=e.clientX;sy=ly=e.clientY;cv.setPointerCapture(e.pointerId)};
+ cv.onpointermove=e=>{if(!drag)return;ry+=(e.clientX-lx)*.008;rx+=(e.clientY-ly)*.008;lx=e.clientX;ly=e.clientY;auto=0};
+ cv.onpointercancel=()=>drag=0;cv.onpointerup=e=>{drag=0;Math.hypot(e.clientX-sx,e.clientY-sy)<5&&pick(e)};cv.ondblclick=()=>auto=1;
+ cv.onwheel=e=>{e.preventDefault();ZT=0;CAM.position.z=Math.min(80,Math.max(4,CAM.position.z*(1+e.deltaY*.0012)))};
+ addEventListener("resize",rs);requestAnimationFrame(loop)}
+const RC=new THREE.Raycaster(),V2=new THREE.Vector2();RC.params.Points.threshold=.3;
+function pick(e){const r=R3.domElement.getBoundingClientRect();V2.set((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1);G.updateMatrixWorld(true);CAM.updateMatrixWorld();
+ let be,bd=24,msg;E.forEach(x=>{const p=x.m.getWorldPosition(new THREE.Vector3()).project(CAM),d=Math.hypot((p.x-V2.x)*r.width/2,(p.y-V2.y)*r.height/2);if(d<bd){bd=d;be=x}});
+ if(be){FO=be.m;FP=null;msg=`Electron in shell ${"KLMNOPQ"[be.k]} (n = ${be.k+1})`}
+ else{RC.setFromCamera(V2,CAM);const h=RC.intersectObjects(TG,false)[0];
+  if(!h){FO=FP=null;ZT=ZD;$("#lab").textContent=LAB[tab];return}
+  FO=null;if(h.object.isInstancedMesh){const M=new THREE.Matrix4();h.object.getMatrixAt(h.instanceId,M);FP=new THREE.Vector3().setFromMatrixPosition(M);msg=cur.P[h.instanceId].p?"Proton":"Neutron"}
+  else{FP=G.worldToLocal(h.point.clone());msg=cur.m<0?"Orbital cloud (each color is one orbital of the subshell)":"Orbital cloud (blue and orange are opposite wave-function signs)"}}
+ ZT=Math.max(4,CAM.position.z*.55);$("#lab").textContent=msg+". Click empty space to zoom out."}
+function rs(){const s=$("#s3");if(R3&&s.clientWidth){R3.setSize(s.clientWidth,s.clientHeight);CAM.aspect=s.clientWidth/s.clientHeight;CAM.updateProjectionMatrix()}
+ const c=$("#c2"),q=c.clientWidth;if(q){c.width=c.height=Math.round(q*Math.min(devicePixelRatio||1,2))}d2(performance.now()/1000)}
+const glow=(col,s)=>{const p=new THREE.Sprite(new THREE.SpriteMaterial({map:GT,color:col,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true}));p.scale.set(s,s,1);return p};
+function nucMesh(P,s){const im=new THREE.InstancedMesh(new THREE.SphereGeometry(1,28,18),new THREE.MeshPhysicalMaterial({roughness:.3,metalness:.05,clearcoat:1,clearcoatRoughness:.15}),P.length),M=new THREE.Matrix4(),c=new THREE.Color();
+ P.forEach((a,i)=>{im.setMatrixAt(i,M.makeScale(s,s,s).setPosition(a.x*s,a.y*s,a.z*s));im.setColorAt(i,c.set(a.p?0xff4b4b:0x4b9bff))});return im}
+function build(){if(!R3)return;while(G.children.length){const o=G.children[0];G.remove(o);o.traverse(q=>{q.geometry&&q.geometry!==EG&&q.geometry.dispose();q.material&&q.material.dispose()})}E=[];TG=[];const ex=cur.ex;
+ if(tab==0){const s=Math.min(.55,1.6/ex),N=cur.sh.length;G.add(nucMesh(cur.P,s),glow(0xff8855,ex*s*5));
+  cur.sh.forEach((cnt,k)=>{const R=3.4+k*1.35,col=new THREE.Color().setHSL((.52+k*.1)%1,.9,.62),g=new THREE.Group(),em=new THREE.MeshStandardMaterial({color:col,emissive:col,emissiveIntensity:.9,roughness:.3});g.rotation.set(.35+k*.62,k*1.15,k*.4);
+   g.add(new THREE.Mesh(new THREE.TorusGeometry(R,.016,8,180),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.5})),new THREE.Mesh(new THREE.SphereGeometry(R,40,28),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:.035,depthWrite:false,side:THREE.DoubleSide})));
+   for(let j=0;j<cnt;j++){const m=new THREE.Mesh(EG,em);m.add(glow(col,1.1));g.add(m);E.push({m,R,k,th:j/cnt*TAU+k,w:(k%2?-1:1)*1.3/(1+.4*k)})}G.add(g)});
+  TG.push(G.children[0]);CAM.position.z=Math.max(14,(3.4+(N-1)*1.35)*2.75)}
+ else if(tab==1){const s=Math.min(1.2,5/ex);G.add(nucMesh(cur.P,s),glow(0xff9a70,ex*s*4),new THREE.Mesh(new THREE.SphereGeometry(ex*s*1.1,40,28),new THREE.MeshBasicMaterial({color:0x88aaff,transparent:true,opacity:.05,depthWrite:false})));TG.push(G.children[0]);CAM.position.z=Math.max(9,ex*s*3.6)}
+ else{const n=+cur.sub[0],l=LI(cur.sub),m=cur.m,rm=3.2*n*n+6,N=16000,pos=new Float32Array(N*3),col=new Float32Array(N*3),s=6.5/(rm*.7),ms=m<0?[...Array(2*l+1).keys()]:[m];let k=0;
+  const dir=()=>{const u=2*Math.random()-1,a=Math.random()*TAU,q=Math.sqrt(1-u*u);return[q*Math.cos(a),q*Math.sin(a),u]};
+  ms.forEach((mm,j)=>{const W=(r,d)=>Rn(n,l,r)*ang(l,mm,d[0],d[1],d[2]),cc=new THREE.Color().setHSL(j/ms.length,.85,.6),end=Math.round(N*(j+1)/ms.length);let wm=0;
+   for(let i=0;i<8000;i++){const r=Math.random()*rm,v=W(r,dir());wm=Math.max(wm,v*v*r*r)}wm*=1.2;
+   let t=0;while(k<end&&t++<900000/ms.length){const r=Math.random()*rm,d=dir(),v=W(r,d);if(Math.random()*wm<v*v*r*r){pos.set([d[0]*r*s,d[1]*r*s,d[2]*r*s],k*3);col.set(m<0?[cc.r,cc.g,cc.b]:v>0?[.25,.65,1]:[1,.55,.2],k*3);k++}}});
+  const g=new THREE.BufferGeometry();g.setAttribute("position",new THREE.BufferAttribute(pos,3));g.setAttribute("color",new THREE.BufferAttribute(col,3));g.setDrawRange(0,k);
+  const ax=new THREE.AxesHelper(7.5);ax.material.transparent=true;ax.material.opacity=.35;
+  G.add(new THREE.Points(g,new THREE.PointsMaterial({size:.22,map:GT,vertexColors:true,transparent:true,opacity:.8,blending:THREE.AdditiveBlending,depthWrite:false})),ax,glow(0xffe08a,.9));TG.push(G.children[0]);CAM.position.z=17}ZD=CAM.position.z;ZT=0;FO=FP=null;G.position.set(0,0,0)}
+function loop(t){requestAnimationFrame(loop);if(ov.hidden||!cur)return;if(auto&&!drag)ry+=.0035;G.rotation.set(rx,ry,0);
+ E.forEach(e=>{e.th+=e.w*.016;e.m.position.set(e.R*Math.cos(e.th),e.R*Math.sin(e.th),0)});
+ const f=FO?FO.position.clone().applyMatrix4(FO.parent.matrix):FP&&FP.clone();G.position.lerp(f?f.applyEuler(G.rotation).negate():new THREE.Vector3(),.15);if(ZT)CAM.position.z+=(ZT-CAM.position.z)*.1;
+ R3.render(SC,CAM);if(tab==0)d2(t/1000)}
+/* ---- theme, start-up, deep link ---- */
+const th=store.get("theme",null);if(th)document.documentElement.dataset.theme=th;
+$("#tm").onclick=()=>{const r=document.documentElement,dark=r.dataset.theme?r.dataset.theme=="dark":matchMedia("(prefers-color-scheme: dark)").matches,t=dark?"light":"dark";r.dataset.theme=t;store.set("theme",t);trend()};
+/* full screen for the whole page or just the 3D view; some frames refuse it, so failures are ignored */
+const fsEl=()=>document.fullscreenElement||document.webkitFullscreenElement;
+function fsToggle(el,fallback){try{if(fsEl()===el)return(document.exitFullscreen||document.webkitExitFullscreen).call(document);const r=el.requestFullscreen||el.webkitRequestFullscreen;
+ if(!r||!(document.fullscreenEnabled||document.webkitFullscreenEnabled))return fallback();Promise.resolve(r.call(el)).catch(fallback)}catch(e){fallback()}}
+/* where the viewer blocks real full screen, the 3D view expands to fill the whole frame instead */
+const fake3=on=>{$("#s3").classList.toggle("fsx",on);$("#fs3").textContent=on?"Exit full screen":"Full screen";setTimeout(rs,30)};
+$("#fs").onclick=()=>fsToggle(document.documentElement,()=>{$("#hv").innerHTML="<big>Full screen is blocked here</big>This viewer does not allow full screen. Open the page in its own browser tab, or use the Full screen button in an element's 3D view, which still fills the window."});
+$("#fs3").onclick=()=>$("#s3").classList.contains("fsx")?fake3(false):fsToggle($("#s3"),()=>fake3(true));
+const fsChange=()=>{const f=fsEl();$("#fs").textContent=f==document.documentElement?"Exit full screen":"Full screen";$("#fs3").textContent=f==$("#s3")||$("#s3").classList.contains("fsx")?"Exit full screen":"Full screen";setTimeout(()=>{rs();trend()},60)};
+document.addEventListener("fullscreenchange",fsChange);document.addEventListener("webkitfullscreenchange",fsChange);
+markMode();slRow();paint();
+{const h=decodeURIComponent(location.hash.slice(1));if(SYM[h])open(SYM[h].z,SYM[h].b)}
+</script>
